@@ -1,0 +1,17 @@
+# Personal config — chứa tên, tag, API key của bạn
+config.json
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Build / dist
+*.egg-info/
+dist/
+build/
+
+# OS
+.DS_Store
+Thumbs.db

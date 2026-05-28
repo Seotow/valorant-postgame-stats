@@ -1,0 +1,101 @@
+﻿<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Valorant Postgame - Henrik Dev v4</title>
+  <link rel="stylesheet" href="/static/css/index.css" />
+
+</head>
+<body>
+  <div class="app">
+
+    <header class="header">
+      <div class="header-title">VALORANT <span>POSTGAME</span></div>
+      <div class="header-actions">
+        <a class="preview-btn" href="preview.html" target="_blank">&#128250; Preview</a>
+        <div class="player-badge" id="player-badge">&mdash;</div>
+        <button class="settings-btn" id="settings-btn" title="Settings" style="display:none">&#9881;</button>
+      </div>
+    </header>
+
+    <div class="status" id="status">
+      <div class="dot spin" id="dot"></div>
+      <span id="status-text">Loading&hellip;</span>
+    </div>
+
+    <!-- Setup form (shown when config.json has no name/tag) -->
+    <div id="setup-section" style="display:none">
+      <div class="setup-card">
+        <h2>Setup</h2>
+        <p>
+          Enter your Riot account name and tag to get started.<br>
+          An optional <a href="https://docs.henrikdev.xyz/general/api-keys" target="_blank">HenrikDev API key</a>
+          increases rate limits.
+        </p>
+        <form id="setup-form" autocomplete="off">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Name</label>
+              <input type="text" id="f-name" placeholder="PlayerName" required />
+            </div>
+            <div class="form-group">
+              <label>Tag</label>
+              <input type="text" id="f-tag" placeholder="VN" required />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Region</label>
+              <select id="f-region">
+                <option value="ap" selected>AP - Asia Pacific</option>
+                <option value="eu">EU - Europe</option>
+                <option value="na">NA - North America</option>
+                <option value="kr">KR - Korea</option>
+                <option value="latam">LATAM - Latin America</option>
+                <option value="br">BR - Brazil</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Platform</label>
+              <select id="f-platform">
+                <option value="pc" selected>PC</option>
+                <option value="console">Console</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row full">
+            <div class="form-group">
+              <label>API Key (optional)</label>
+              <input type="text" id="f-apikey" placeholder="HDEV-xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" />
+            </div>
+          </div>
+          <button type="submit" class="setup-submit">Save &amp; Load</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Match list (shown after setup) -->
+    <div id="history-section" style="display:none">
+      <div class="filters" id="filters">
+        <button class="filter-btn active" data-queue="">ALL</button>
+        <button class="filter-btn" data-queue="competitive">COMPETITIVE</button>
+        <button class="filter-btn" data-queue="unrated">UNRATED</button>
+        <button class="filter-btn" data-queue="spikerush">SPIKE RUSH</button>
+        <button class="filter-btn" data-queue="swiftplay">SWIFTPLAY</button>
+        <button class="filter-btn" data-queue="deathmatch">DEATHMATCH</button>
+      </div>
+      <div class="match-list" id="match-list">
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+        <div class="skeleton"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="/static/js/index.js"></script>
+</body>
+</html>

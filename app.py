@@ -7,13 +7,39 @@ Config: Edit config.json with your Riot name, tag and region
 
 import json
 from pathlib import Path
-from flask import Flask, jsonify, send_from_directory, request
+from queue import Empty, Queue
+from threading import Lock
+from flask import Flask, Response, jsonify, send_from_directory, request
 import requests
 
 app = Flask(__name__)
 
 BASE_URL     = "https://api.henrikdev.xyz"
-CONFIG_FILE  = Path(__file__).parent / "config.json"
+CONFIG_FILE          = Path(__file__).parent / "config.json"
+OVERLAY_CONFIG_FILE  = Path(__file__).parent / "overlay-config.json"
+
+DEFAULT_OVERLAY_CONFIG = {
+    "leftTeamName":      "",
+    "rightTeamName":     "",
+    "leftTeamLogo":      "",
+    "rightTeamLogo":     "",
+    "leagueLogo":        "",
+    "mapImageLeft":      "",
+    "mapImageRight":     "",
+    "mapNameLeft":       "",
+    "mapNameRight":      "",
+    "primaryColor":      "#ff5a00",
+    "primaryOpacity":    1.0,
+    "cellColor":         "#343434",
+    "cellOpacity":       1.0,
+    "cell2Color":        "#1b1d1b",
+    "cell2Opacity":      1.0,
+    "fontFamily":        "Tungsten",
+    "fallbackIcon":      "",
+    "overlayBg":         "",
+    "overlayBgColor":    "#000000",
+    "overlayBgOpacity":  0.0,
+}
 
 DEFAULT_CONFIG = {
     "name":     "",
@@ -23,8 +49,11 @@ DEFAULT_CONFIG = {
     "api_key":  "",
 }
 
-_account_cache: dict = {}
-_current_match_id: str = ""
+_account_cache:    dict       = {}
+_current_match_id: str        = ""
+_sse_clients:      list[Queue] = []
+_sse_lock          = Lock()
+_maps_cache:       list       = []
 
 
 # ─── Config ───────────────────────────────────────────────────────────────────
@@ -39,6 +68,36 @@ def load_config() -> dict:
 def save_config(data: dict) -> None:
     with open(CONFIG_FILE, "w") as f:
         json.dump(data, f, indent=2)
+
+
+def load_overlay_config() -> dict:
+    if OVERLAY_CONFIG_FILE.exists():
+        with open(OVERLAY_CONFIG_FILE, "r", encoding="utf-8") as f:
+            return {**DEFAULT_OVERLAY_CONFIG, **json.load(f)}
+    return DEFAULT_OVERLAY_CONFIG.copy()
+
+
+def save_overlay_config(data: dict) -> None:
+    with open(OVERLAY_CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+
+# ─── SSE helpers ─────────────────────────────────────────────────────────────
+
+def _safe_put(q: Queue, msg: str) -> bool:
+    try:
+        q.put_nowait(msg)
+        return True
+    except Exception:
+        return False
+
+
+def notify_overlay(event_type: str, data: dict | None = None) -> None:
+    payload = json.dumps({"type": event_type, "data": data or {}})
+    with _sse_lock:
+        dead = [q for q in _sse_clients if not _safe_put(q, payload)]
+        for q in dead:
+            _sse_clients.remove(q)
 
 
 # ─── Henrik Dev API helpers ───────────────────────────────────────────────────
@@ -208,12 +267,57 @@ def api_match(match_id: str):
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/overlay-config", methods=["GET"])
+def api_overlay_config_get():
+    cfg = load_overlay_config()
+    # Migrate: clear old low-resolution listviewicon URLs (456x100px)
+    for key in ("mapImageLeft", "mapImageRight"):
+        if "listviewicon.png" in cfg.get(key, "").lower():
+            cfg[key] = ""
+    return jsonify(cfg)
+
+
+@app.route("/api/overlay-config", methods=["POST"])
+def api_overlay_config_post():
+    body = request.get_json(force=True) or {}
+    cfg  = load_overlay_config()
+    cfg.update(body)
+    save_overlay_config(cfg)
+    notify_overlay("config-updated")   # overlay re-fetches; avoids large SSE payload
+    return jsonify({"ok": True})
+
+
+@app.route("/api/maps")
+def api_maps():
+    """Proxies valorant-api.com map list; filtered & cached in memory."""
+    global _maps_cache
+    if _maps_cache:
+        return jsonify(_maps_cache)
+    try:
+        r = requests.get("https://valorant-api.com/v1/maps", timeout=10)
+        r.raise_for_status()
+        _maps_cache = [
+            {
+                "uuid":                    m.get("uuid"),
+                "displayName":             m.get("displayName"),
+                "splash":        m.get("splash"),
+                "listViewIcon":  m.get("listViewIcon"),
+            }
+            for m in r.json().get("data", [])
+            if m.get("displayName") and m.get("splash")
+        ]
+        return jsonify(_maps_cache)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/set-match", methods=["POST"])
 def api_set_match():
     """Store which match the OBS overlay should display."""
     global _current_match_id
     body = request.get_json(force=True) or {}
     _current_match_id = body.get("match_id", "")
+    notify_overlay("match-updated", {"match_id": _current_match_id})
     return jsonify({"ok": True})
 
 
@@ -225,6 +329,33 @@ def api_current_match():
     return api_match(_current_match_id)
 
 
+@app.route("/api/events")
+def api_events():
+    """Server-Sent Events stream — overlay subscribes here for live updates."""
+    def stream():
+        q: Queue = Queue(maxsize=20)
+        with _sse_lock:
+            _sse_clients.append(q)
+        try:
+            yield 'data: {"type":"connected"}\n\n'
+            while True:
+                try:
+                    msg = q.get(timeout=25)
+                    yield f"data: {msg}\n\n"
+                except Empty:
+                    yield ": ping\n\n"
+        finally:
+            with _sse_lock:
+                if q in _sse_clients:
+                    _sse_clients.remove(q)
+
+    return Response(
+        stream(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 # ─── Entry point ──────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
@@ -232,4 +363,4 @@ if __name__ == "__main__":
     print("  Valorant Postgame Stats — Henrik Dev v4")
     print("  http://localhost:7123")
     print("=" * 52)
-    app.run(port=7123, debug=False)
+    app.run(port=7123, debug=False, threaded=True)

@@ -12,7 +12,14 @@
 
     <header class="header">
       <div class="header-title">VALORANT <span>POSTGAME</span></div>
+      <div class="header-center">
+        <div class="tab-bar">
+          <button class="tab-btn active" data-tab="history">📋 LỊCH SỬ</button>
+          <button class="tab-btn" data-tab="config">🎨 OVERLAY</button>
+        </div>
+      </div>
       <div class="header-actions">
+        <div class="sse-status" id="sse-status" title="Overlay connection">&#9679;</div>
         <a class="preview-btn" href="preview.html" target="_blank">&#128250; Preview</a>
         <div class="player-badge" id="player-badge">&mdash;</div>
         <button class="settings-btn" id="settings-btn" title="Settings" style="display:none">&#9881;</button>
@@ -91,6 +98,149 @@
         <div class="skeleton"></div>
         <div class="skeleton"></div>
         <div class="skeleton"></div>
+      </div>
+    </div>
+
+    <!-- Overlay config (shown when config tab active) -->
+    <div id="config-section" style="display:none">
+      <div class="config-card">
+
+        <div class="config-cols">
+          <div class="config-col">
+
+        <div class="config-group">
+          <div class="config-group-title">ĐỘI THI ĐẤU</div>
+          <div class="config-row">
+            <label>Tên đội trái</label>
+            <input type="text" id="cfg-leftTeamName" placeholder="T1" />
+          </div>
+          <div class="cfg-file-row">
+            <label>Logo đội trái</label>
+            <div class="file-pick-wrap">
+              <div class="fp-preview"><img id="prev-leftTeamLogo" src="" alt="" /></div>
+              <label class="fp-btn" for="file-leftTeamLogo">&#128193; Chọn ảnh</label>
+              <input type="file" class="fp-input" id="file-leftTeamLogo" accept="image/*" />
+              <button type="button" class="fp-clear" data-field="leftTeamLogo">&#10005;</button>
+            </div>
+          </div>
+          <div class="config-row">
+            <label>Tên đội phải</label>
+            <input type="text" id="cfg-rightTeamName" placeholder="RRQ" />
+          </div>
+          <div class="cfg-file-row">
+            <label>Logo đội phải</label>
+            <div class="file-pick-wrap">
+              <div class="fp-preview"><img id="prev-rightTeamLogo" src="" alt="" /></div>
+              <label class="fp-btn" for="file-rightTeamLogo">&#128193; Chọn ảnh</label>
+              <input type="file" class="fp-input" id="file-rightTeamLogo" accept="image/*" />
+              <button type="button" class="fp-clear" data-field="rightTeamLogo">&#10005;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <div class="config-group-title">GIẢI ĐẤU</div>
+          <div class="cfg-file-row">
+            <label>Logo giải</label>
+            <div class="file-pick-wrap">
+              <div class="fp-preview"><img id="prev-leagueLogo" src="" alt="" /></div>
+              <label class="fp-btn" for="file-leagueLogo">&#128193; Chọn ảnh</label>
+              <input type="file" class="fp-input" id="file-leagueLogo" accept="image/*" />
+              <button type="button" class="fp-clear" data-field="leagueLogo">&#10005;</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <div class="config-group-title">HÌNH BẢN ĐỒ (PANEL)</div>
+          <div class="map-panel-tabs">
+            <button type="button" class="map-panel-tab active" data-panel="left">&#8592; PANEL TRÁI</button>
+            <button type="button" class="map-panel-tab" data-panel="right">PANEL PHẢI &#8594;</button>
+            <button type="button" class="map-clear-btn" id="btn-map-clear">&#10005; Xóa</button>
+          </div>
+          <div class="map-grid" id="map-grid">
+            <div class="map-loading">Đang tải bản đồ&hellip;</div>
+          </div>
+        </div>
+
+          </div><!-- /col left -->
+          <div class="config-col">
+
+        <div class="config-group">
+          <div class="config-group-title">MÀU SẮC</div>
+          <div class="config-row color-row">
+            <label>Màu chủ đạo</label>
+            <input type="color" id="cfg-primaryColor" value="#ff5a00" />
+            <span>Opacity</span>
+            <input type="range" id="cfg-primaryOpacity" min="0" max="1" step="0.01" value="1" />
+            <span class="range-val" id="cfg-primaryOpacity-val">1.00</span>
+          </div>
+          <div class="config-row color-row">
+            <label>Ô nền (tối)</label>
+            <input type="color" id="cfg-cellColor" value="#343434" />
+            <span>Opacity</span>
+            <input type="range" id="cfg-cellOpacity" min="0" max="1" step="0.01" value="1" />
+            <span class="range-val" id="cfg-cellOpacity-val">1.00</span>
+          </div>
+          <div class="config-row color-row">
+            <label>Ô nền 2</label>
+            <input type="color" id="cfg-cell2Color" value="#1b1d1b" />
+            <span>Opacity</span>
+            <input type="range" id="cfg-cell2Opacity" min="0" max="1" step="0.01" value="1" />
+            <span class="range-val" id="cfg-cell2Opacity-val">1.00</span>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <div class="config-group-title">NỀN OVERLAY</div>
+          <div class="cfg-file-row">
+            <label>Ảnh nền</label>
+            <div class="file-pick-wrap">
+              <div class="fp-preview"><img id="prev-overlayBg" src="" alt="" /></div>
+              <label class="fp-btn" for="file-overlayBg">&#128193; Chọn ảnh</label>
+              <input type="file" class="fp-input" id="file-overlayBg" accept="image/*" />
+              <button type="button" class="fp-clear" data-field="overlayBg">&#10005;</button>
+            </div>
+          </div>
+          <div class="config-row color-row">
+            <label>Màu nền</label>
+            <input type="color" id="cfg-overlayBgColor" value="#000000" />
+            <span>Opacity</span>
+            <input type="range" id="cfg-overlayBgOpacity" min="0" max="1" step="0.01" value="0" />
+            <span class="range-val" id="cfg-overlayBgOpacity-val">0.00</span>
+          </div>
+        </div>
+
+        <div class="config-group">
+          <div class="config-group-title">GIAO DIỆN</div>
+          <div class="config-row">
+            <label>Font overlay</label>
+            <select id="cfg-fontFamily">
+              <option value="Tungsten">Tungsten (mặc định)</option>
+              <option value="Arial">Arial</option>
+              <option value="Impact">Impact</option>
+              <option value="Tahoma">Tahoma</option>
+            </select>
+          </div>
+          <div class="cfg-file-row">
+            <label>Fallback icon</label>
+            <div class="file-pick-wrap">
+              <div class="fp-preview"><img id="prev-fallbackIcon" src="" alt="" /></div>
+              <label class="fp-btn" for="file-fallbackIcon">&#128193; Chọn ảnh</label>
+              <input type="file" class="fp-input" id="file-fallbackIcon" accept="image/*" />
+              <button type="button" class="fp-clear" data-field="fallbackIcon">&#10005;</button>
+            </div>
+          </div>
+        </div>
+
+          </div><!-- /col right -->
+        </div><!-- /config-cols -->
+
+        <div class="config-actions">
+          <button class="cfg-save-btn" id="cfg-save-btn">&#128190; Lưu &amp; Áp dụng</button>
+          <span class="cfg-save-msg" id="cfg-save-msg"></span>
+        </div>
+
       </div>
     </div>
 

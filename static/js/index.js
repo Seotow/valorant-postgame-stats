@@ -2,7 +2,14 @@ let allMatches  = [];
 let myPuuid     = "";
 let activeQueue = "";
 
-var selectedMatchId = "";
+var selectedMatchId   = "";
+
+var _fileData         = {};   // field → base64 dataURL (locally picked files)
+var _selectedMapLeft      = "";  // URL of map image chosen for left panel
+var _selectedMapRight     = "";  // URL of map image chosen for right panel
+var _selectedMapNameLeft  = "";  // display name for left panel
+var _selectedMapNameRight = "";  // display name for right panel
+var _activeMapPanel       = "left";  // which panel the map grid is targeting
 
 function setStatus(state, text) {
   document.getElementById("dot").className = "dot " + state;
@@ -155,6 +162,236 @@ async function boot() {
     showSetup({});
     setStatus("error", "Could not reach server");
   }
+  loadOverlayConfig();
+  initConfigForm();
+  initFilePickers();
+  loadMaps();
+  initTabBar();
+  initSseStatus();
 }
 
 boot();
+
+// Tabs -----------------------------------------------------------------
+
+function initTabBar() {
+  document.querySelectorAll(".tab-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var tab = btn.dataset.tab;
+      document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      document.getElementById("history-section").style.display = tab === "history" ? "block" : "none";
+      document.getElementById("setup-section").style.display   = "none";
+      document.getElementById("config-section").style.display  = tab === "config"  ? "block" : "none";
+    });
+  });
+}
+
+// SSE status indicator -------------------------------------------------
+
+function initSseStatus() {
+  var dot = document.getElementById("sse-status");
+  var es  = new EventSource("/api/events");
+  es.onopen    = function() { dot.classList.add("connected"); dot.title = "Overlay connected"; };
+  es.onerror   = function() { dot.classList.remove("connected"); dot.title = "Overlay disconnected"; };
+}
+
+// Overlay config form --------------------------------------------------
+
+async function loadOverlayConfig() {
+  try {
+    var cfg = await fetch("/api/overlay-config").then(function(r) { return r.json(); });
+
+    /* text inputs */
+    ["leftTeamName", "rightTeamName", "fontFamily"].forEach(function(key) {
+      var el = document.getElementById("cfg-" + key);
+      if (el && cfg[key] != null) el.value = cfg[key];
+    });
+
+    /* color pickers */
+    ["primaryColor", "cellColor", "cell2Color", "overlayBgColor"].forEach(function(key) {
+      var el = document.getElementById("cfg-" + key);
+      if (el && cfg[key]) el.value = cfg[key];
+    });
+
+    /* opacity sliders */
+    ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity"].forEach(function(key) {
+      var slider = document.getElementById("cfg-" + key);
+      var label  = document.getElementById("cfg-" + key + "-val");
+      if (slider && cfg[key] != null) {
+        slider.value = cfg[key];
+        if (label) label.textContent = parseFloat(cfg[key]).toFixed(2);
+      }
+    });
+
+    /* file-backed images: restore preview from stored base64 */
+    ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon"].forEach(function(key) {
+      if (cfg[key]) {
+        _fileData[key] = cfg[key];
+        var prev = document.getElementById("prev-" + key);
+        if (prev) prev.src = cfg[key];
+      }
+    });
+
+    /* map panel selections */
+    _selectedMapLeft      = cfg.mapImageLeft  || "";
+    _selectedMapRight     = cfg.mapImageRight || "";
+    _selectedMapNameLeft  = cfg.mapNameLeft   || "";
+    _selectedMapNameRight = cfg.mapNameRight  || "";
+    updateMapTileSelection();
+  } catch (_) {}
+}
+
+function initConfigForm() {
+  /* opacity slider live labels */
+  ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity"].forEach(function(key) {
+    var slider = document.getElementById("cfg-" + key);
+    var label  = document.getElementById("cfg-" + key + "-val");
+    if (!slider) return;
+    slider.addEventListener("input", function() {
+      if (label) label.textContent = parseFloat(slider.value).toFixed(2);
+    });
+  });
+
+  /* map panel tab switching */
+  document.querySelectorAll(".map-panel-tab").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      _activeMapPanel = btn.dataset.panel;
+      document.querySelectorAll(".map-panel-tab").forEach(function(b) { b.classList.remove("active"); });
+      btn.classList.add("active");
+      updateMapTileSelection();
+    });
+  });
+
+  /* clear map selection for active panel */
+  var clearMapBtn = document.getElementById("btn-map-clear");
+  if (clearMapBtn) {
+    clearMapBtn.addEventListener("click", function() {
+      if (_activeMapPanel === "left") { _selectedMapLeft  = ""; _selectedMapNameLeft  = ""; }
+      else                            { _selectedMapRight = ""; _selectedMapNameRight = ""; }
+      updateMapTileSelection();
+    });
+  }
+
+  /* save button */
+  document.getElementById("cfg-save-btn").addEventListener("click", saveOverlayConfig);
+}
+
+function initFilePickers() {
+  ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon"].forEach(function(field) {
+    var input = document.getElementById("file-" + field);
+    if (!input) return;
+    input.addEventListener("change", function() {
+      var file = input.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(e) {
+        _fileData[field] = e.target.result;
+        var prev = document.getElementById("prev-" + field);
+        if (prev) prev.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+
+  document.querySelectorAll(".fp-clear").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var field = btn.dataset.field;
+      _fileData[field] = "";
+      var prev  = document.getElementById("prev-" + field);
+      var input = document.getElementById("file-" + field);
+      if (prev)  prev.src = "";
+      if (input) input.value = "";
+    });
+  });
+}
+
+async function loadMaps() {
+  var grid = document.getElementById("map-grid");
+  if (!grid) return;
+  try {
+    var resp = await fetch("/api/maps");
+    if (!resp.ok) throw new Error("HTTP " + resp.status + " — khởi động lại server?");
+    var maps = await resp.json();
+    if (!Array.isArray(maps)) throw new Error("Định dạng dữ liệu không hợp lệ");
+    /* filter out The Range and any map without a background image */
+    maps = maps.filter(function(m) {
+      return m.displayName && m.splash;
+    });
+    grid.innerHTML = maps.map(function(m) {
+      var thumb = m.listViewIcon || m.splash;
+      var panel = m.splash;
+      return '<button class="map-tile" type="button" data-img="' + panel
+        + '" data-name="' + m.displayName
+        + '" title="' + m.displayName + '">'
+        + '<img src="' + thumb + '" alt="' + m.displayName + '" loading="lazy" />'
+        + '<span>' + m.displayName + '</span>'
+        + '</button>';
+    }).join("");
+    grid.addEventListener("click", function(e) {
+      var tile = e.target.closest(".map-tile");
+      if (!tile) return;
+      var url  = tile.dataset.img;
+      var name = tile.dataset.name || "";
+      if (_activeMapPanel === "left") { _selectedMapLeft  = url; _selectedMapNameLeft  = name; }
+      else                            { _selectedMapRight = url; _selectedMapNameRight = name; }
+      updateMapTileSelection();
+    });
+    updateMapTileSelection();
+  } catch (err) {
+    if (grid) grid.innerHTML = '<div class="map-loading">Lỗi: ' + err.message + '</div>';
+  }
+}
+
+function updateMapTileSelection() {
+  var current = _activeMapPanel === "left" ? _selectedMapLeft : _selectedMapRight;
+  document.querySelectorAll(".map-tile").forEach(function(t) {
+    t.classList.toggle("active", current !== "" && t.dataset.img === current);
+  });
+}
+
+async function saveOverlayConfig() {
+  var body = {};
+
+  /* text */
+  ["leftTeamName", "rightTeamName", "fontFamily"].forEach(function(key) {
+    var el = document.getElementById("cfg-" + key);
+    if (el) body[key] = el.value;
+  });
+
+  /* colors */
+  ["primaryColor", "cellColor", "cell2Color", "overlayBgColor"].forEach(function(key) {
+    var el = document.getElementById("cfg-" + key);
+    if (el) body[key] = el.value;
+  });
+
+  /* opacities */
+  ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity"].forEach(function(key) {
+    var el = document.getElementById("cfg-" + key);
+    if (el) body[key] = parseFloat(el.value);
+  });
+
+  /* file-backed images (base64 dataURL or empty string) */
+  ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon"].forEach(function(key) {
+    body[key] = _fileData[key] !== undefined ? _fileData[key] : "";
+  });
+
+  /* map panels */
+  body.mapImageLeft  = _selectedMapLeft      || "";
+  body.mapImageRight = _selectedMapRight     || "";
+  body.mapNameLeft   = _selectedMapNameLeft  || "";
+  body.mapNameRight  = _selectedMapNameRight || "";
+
+  try {
+    await fetch("/api/overlay-config", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    var msg = document.getElementById("cfg-save-msg");
+    msg.textContent = "✓ Đã lưu & áp dụng";
+    setTimeout(function() { msg.textContent = ""; }, 2500);
+  } catch (err) {
+    document.getElementById("cfg-save-msg").textContent = "Lỗi: " + err.message;
+  }
+}

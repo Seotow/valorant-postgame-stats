@@ -1,11 +1,11 @@
 @font-face {
   font-family: "Tungsten";
-  src: url("/font/SVN-Tungsten Bold.otf") format("opentype");
+  src: url("/static/fonts/SVN-Tungsten Bold.otf") format("opentype");
   font-weight: 700;
 }
 @font-face {
   font-family: "Tungsten";
-  src: url("/font/SVN-Tungsten Semibold.otf") format("opentype");
+  src: url("/static/fonts/SVN-Tungsten Semibold.otf") format("opentype");
   font-weight: 600;
 }
 
@@ -27,10 +27,11 @@ html, body {
   min-height: 100%;
   background: var(--dark);
   color: var(--text);
-  font-family: "Tungsten", "Arial Black", sans-serif;
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  font-size: 15px;
 }
 
-.app { max-width: 720px; margin: 0 auto; padding: 36px 20px 60px; }
+.app { max-width: 1400px; margin: 0 auto; padding: 28px 40px 60px; }
 
 /* Header */
 .header {
@@ -39,8 +40,8 @@ html, body {
   border-bottom: 3px solid var(--orange);
 }
 .header-title {
-  font-size: 38px; font-weight: 700;
-  letter-spacing: -0.02em; text-transform: uppercase; line-height: 1;
+  font-size: 24px; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase; line-height: 1;
 }
 .header-title span { color: var(--orange); }
 
@@ -111,8 +112,8 @@ html, body {
 
 .setup-submit {
   background: var(--orange); border: none; color: #fff;
-  padding: 11px 28px; font-family: "Tungsten", sans-serif;
-  font-size: 20px; font-weight: 700; letter-spacing: 0.05em;
+  padding: 10px 24px; font-family: inherit;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
   text-transform: uppercase; cursor: pointer;
   transition: opacity 0.12s; margin-top: 8px;
 }
@@ -123,8 +124,8 @@ html, body {
 .filter-btn {
   background: var(--card); border: 1px solid var(--border);
   color: var(--muted); padding: 5px 14px;
-  font-family: "Tungsten", sans-serif; font-size: 15px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.05em;
+  font-family: inherit; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.08em;
   cursor: pointer; transition: border-color 0.12s, color 0.12s;
 }
 .filter-btn:hover, .filter-btn.active { border-color: var(--orange); color: var(--orange); }
@@ -146,35 +147,35 @@ html, body {
 .match-card:hover { background: var(--card-h); border-left-color: var(--orange); }
 
 .match-outcome {
-  text-align: center; font-size: 22px; font-weight: 700; line-height: 1;
+  text-align: center; font-size: 15px; font-weight: 800; line-height: 1;
 }
 .match-outcome.win  { color: var(--win); }
 .match-outcome.loss { color: var(--loss); }
 .match-outcome.draw { color: var(--muted); }
 
 .match-score {
-  text-align: center; font-size: 28px; font-weight: 700;
+  text-align: center; font-size: 20px; font-weight: 800;
   letter-spacing: -0.02em; line-height: 1;
 }
 
 .match-info { min-width: 0; }
-.match-map   { font-size: 22px; font-weight: 700; text-transform: uppercase; line-height: 1; }
-.match-queue { font-size: 14px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-top: 3px; }
-.match-date  { font-family: Arial, sans-serif; font-size: 12px; color: var(--muted); text-transform: none; margin-top: 4px; }
+.match-map   { font-size: 16px; font-weight: 700; text-transform: uppercase; line-height: 1; }
+.match-queue { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; margin-top: 3px; }
+.match-date  { font-family: inherit; font-size: 11px; color: var(--muted); text-transform: none; margin-top: 4px; }
 
 .match-card.selected { border-left-color: var(--orange) !important; }
 .match-card.selected .match-outcome { color: var(--orange); }
 
 .preview-btn {
   background: var(--orange); border: none; color: #fff;
-  padding: 7px 16px; font-family: "Tungsten", sans-serif;
-  font-size: 18px; font-weight: 700; letter-spacing: 0.05em;
+  padding: 7px 16px; font-family: inherit;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
   text-transform: uppercase; cursor: pointer; text-decoration: none;
   display: inline-block; white-space: nowrap;
 }
 .preview-btn:hover { opacity: 0.85; }
 
-.match-arrow { color: var(--muted); font-size: 22px; font-weight: 700; }
+.match-arrow { color: var(--muted); font-size: 16px; font-weight: 700; }
 
 .agent-icon-card {
   width: 44px; height: 44px;
@@ -205,3 +206,210 @@ html, body {
   color: var(--muted); line-height: 1.55; text-transform: none;
 }
 .error-box p + p { margin-top: 8px; }
+
+/* ── Tab bar ─────────────────────────────────────────── */
+.header-center { flex: 1; display: flex; justify-content: center; }
+
+.tab-bar { display: flex; gap: 4px; }
+.tab-btn {
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); padding: 7px 20px;
+  font-family: inherit;
+  font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.tab-btn:hover { border-color: var(--orange); color: var(--text); }
+.tab-btn.active { border-color: var(--orange); color: var(--orange); }
+
+/* SSE status dot */
+.sse-status {
+  font-size: 12px; color: var(--muted);
+  cursor: default; user-select: none; transition: color 0.3s;
+}
+.sse-status.connected { color: var(--win); }
+
+/* ── Overlay config panel ───────────────────────────── */
+.config-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-top: 3px solid var(--orange);
+  padding: 28px 32px;
+}
+
+.config-group {
+  display: flex; flex-direction: column; gap: 10px;
+}
+.config-group-title {
+  font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+  color: var(--orange); border-bottom: 1px solid var(--border);
+  padding-bottom: 6px; margin-bottom: 4px;
+}
+
+.config-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.config-row label {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px; color: var(--muted);
+  text-transform: none; font-weight: 500;
+}
+.config-row input[type="text"],
+.config-row select {
+  width: 100%; background: var(--dark); border: 1px solid var(--border);
+  color: var(--text); padding: 8px 10px;
+  font-family: system-ui, -apple-system, sans-serif; font-size: 13px;
+  outline: none; transition: border-color 0.12s;
+}
+.config-row input[type="text"]:focus,
+.config-row select:focus { border-color: var(--orange); }
+.config-row select option { background: var(--dark); }
+
+/* color rows */
+.color-row {
+  grid-template-columns: 160px auto 52px 1fr 48px;
+  gap: 10px;
+}
+.color-row span {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 12px; color: var(--muted); white-space: nowrap;
+}
+.color-row .range-val {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 12px; color: var(--text); text-align: right;
+}
+input[type="color"] {
+  width: 44px; height: 34px; border: 1px solid var(--border);
+  background: none; cursor: pointer; padding: 2px 3px;
+}
+input[type="range"] {
+  width: 100%; accent-color: var(--orange); cursor: pointer;
+}
+
+.config-actions { display: flex; align-items: center; gap: 14px; padding-top: 6px; }
+.cfg-save-btn {
+  background: var(--orange); border: none; color: #fff;
+  padding: 10px 24px; font-family: inherit;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer;
+  transition: opacity 0.12s;
+}
+.cfg-save-btn:hover { opacity: 0.85; }
+.cfg-save-msg {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px; color: var(--win);
+}
+
+/* ── File picker ─────────────────────────────────────── */
+.cfg-file-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.cfg-file-row > label {
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px; color: var(--muted);
+  font-weight: 500;
+}
+.file-pick-wrap { display: flex; align-items: center; gap: 8px; }
+.fp-preview {
+  width: 44px; height: 44px;
+  border: 1px solid var(--border);
+  background: var(--dark);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden;
+}
+.fp-preview img { width: 100%; height: 100%; object-fit: contain; }
+.fp-preview img:not([src]), .fp-preview img[src=""] { display: none; }
+.fp-input { display: none; }
+.fp-btn {
+  background: var(--card-h); border: 1px solid var(--border);
+  color: var(--text); padding: 7px 12px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 12px; cursor: pointer; white-space: nowrap;
+  transition: border-color 0.12s;
+}
+.fp-btn:hover { border-color: var(--orange); }
+.fp-clear {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); padding: 7px 10px;
+  font-size: 12px; cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.fp-clear:hover { border-color: var(--loss); color: var(--loss); }
+
+/* ── Map panel tabs ──────────────────────────────────── */
+.map-panel-tabs { display: flex; gap: 4px; margin-bottom: 10px; }
+.map-panel-tab {
+  background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); padding: 5px 14px;
+  font-family: inherit;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; cursor: pointer;
+  transition: border-color 0.12s, color 0.12s;
+}
+.map-panel-tab:hover { border-color: var(--orange); color: var(--text); }
+.map-panel-tab.active { border-color: var(--orange); color: var(--orange); }
+
+.map-clear-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); padding: 5px 10px;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 12px; cursor: pointer; margin-left: auto;
+  transition: border-color 0.12s, color 0.12s;
+}
+.map-clear-btn:hover { border-color: var(--loss); color: var(--loss); }
+
+/* ── Map grid ────────────────────────────────────────── */
+.map-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 6px;
+}
+.map-tile {
+  background: none; border: 2px solid transparent;
+  padding: 0; cursor: pointer; position: relative;
+  transition: border-color 0.12s;
+}
+.map-tile:hover { border-color: rgba(255,90,0,0.6); }
+.map-tile.active { border-color: var(--orange); }
+.map-tile.active::after {
+  content: "\2713";
+  position: absolute; top: 3px; right: 5px;
+  color: var(--orange); font-size: 13px; font-weight: 900;
+  text-shadow: 0 0 4px rgba(0,0,0,0.9);
+}
+.map-tile img {
+  width: 100%; height: 48px;
+  object-fit: cover; object-position: center;
+  display: block;
+}
+.map-tile span {
+  display: block;
+  font-family: inherit;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.03em;
+  text-align: center; color: var(--muted);
+  padding: 3px 4px;
+  background: var(--card);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.map-loading {
+  font-family: inherit;
+  font-size: 13px; color: var(--muted);
+  padding: 8px 0;
+}
+
+/* ── Config 2-column layout ──────────────────────── */
+.config-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 36px;
+  margin-bottom: 24px;
+}
+.config-col {
+  display: flex; flex-direction: column; gap: 24px;
+}
+

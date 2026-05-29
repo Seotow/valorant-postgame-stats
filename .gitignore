@@ -1,6 +1,9 @@
 # Personal config — chứa tên, tag, API key của bạn
 config.json
 
+# Overlay config — chứa logo base64, màu sắc, cài đặt overlay
+overlay-config.json
+
 # Python
 .venv/
 __pycache__/

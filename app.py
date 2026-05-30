@@ -24,16 +24,17 @@ DEFAULT_OVERLAY_CONFIG = {
     "leftTeamLogo":      "",
     "rightTeamLogo":     "",
     "leagueLogo":        "",
-    "mapImageLeft":      "",
-    "mapImageRight":     "",
-    "mapNameLeft":       "",
-    "mapNameRight":      "",
+    "sponsorImage":      "",
     "primaryColor":      "#ff5a00",
     "primaryOpacity":    1.0,
     "cellColor":         "#343434",
     "cellOpacity":       1.0,
     "cell2Color":        "#1b1d1b",
     "cell2Opacity":      1.0,
+    "headerBgColor":     "#343434",
+    "headerBgOpacity":   1.0,
+    "headerTextColor":   "#f5f5f5",
+    "bodyTextColor":     "#f5f5f5",
     "fontFamily":        "Tungsten",
     "fallbackIcon":      "",
     "overlayBg":         "",
@@ -144,6 +145,12 @@ def index():
 @app.route("/preview.html")
 def overlay():
     return send_from_directory(".", "preview.html")
+
+
+@app.route("/custom/<path:filename>")
+def custom_overlay(filename: str):
+    return send_from_directory("custom", filename)
+
 
 
 @app.route("/font/<path:filename>")

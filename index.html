@@ -152,14 +152,22 @@
         </div>
 
         <div class="config-group">
-          <div class="config-group-title">HÌNH BẢN ĐỒ (PANEL)</div>
-          <div class="map-panel-tabs">
-            <button type="button" class="map-panel-tab active" data-panel="left">&#8592; PANEL TRÁI</button>
-            <button type="button" class="map-panel-tab" data-panel="right">PANEL PHẢI &#8594;</button>
-            <button type="button" class="map-clear-btn" id="btn-map-clear">&#10005; Xóa</button>
+          <div class="config-group-title">PANEL TRÁI (BẢN ĐỒ)</div>
+          <div class="config-row">
+            <span style="font-size:13px;opacity:0.65;">&#9654; Tự động tải từ trận đấu đã chọn</span>
           </div>
-          <div class="map-grid" id="map-grid">
-            <div class="map-loading">Đang tải bản đồ&hellip;</div>
+        </div>
+
+        <div class="config-group">
+          <div class="config-group-title">PANEL PHẢI (NHÀ TÀI TRỢ)</div>
+          <div class="cfg-file-row">
+            <label>Ảnh nhà tài trợ</label>
+            <div class="file-pick-wrap">
+              <div class="fp-preview"><img id="prev-sponsorImage" src="" alt="" /></div>
+              <label class="fp-btn" for="file-sponsorImage">&#128193; Chọn ảnh</label>
+              <input type="file" class="fp-input" id="file-sponsorImage" accept="image/*" />
+              <button type="button" class="fp-clear" data-field="sponsorImage">&#10005;</button>
+            </div>
           </div>
         </div>
 
@@ -188,6 +196,21 @@
             <span>Opacity</span>
             <input type="range" id="cfg-cell2Opacity" min="0" max="1" step="0.01" value="1" />
             <span class="range-val" id="cfg-cell2Opacity-val">1.00</span>
+          </div>
+          <div class="config-row color-row">
+            <label>Nền header</label>
+            <input type="color" id="cfg-headerBgColor" value="#343434" />
+            <span>Opacity</span>
+            <input type="range" id="cfg-headerBgOpacity" min="0" max="1" step="0.01" value="1" />
+            <span class="range-val" id="cfg-headerBgOpacity-val">1.00</span>
+          </div>
+          <div class="config-row color-row">
+            <label>Chữ header</label>
+            <input type="color" id="cfg-headerTextColor" value="#f5f5f5" />
+          </div>
+          <div class="config-row color-row">
+            <label>Chữ nội dung</label>
+            <input type="color" id="cfg-bodyTextColor" value="#f5f5f5" />
           </div>
         </div>
 

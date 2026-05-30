@@ -8,9 +8,9 @@ const postgameData = {
     leftTeamLogo: "", rightTeamLogo: "", leagueLogo: "",
     leftScore: 13, rightScore: 11,
     leftResult: "THẮNG", rightResult: "THUA",
-      mapName: "ASCENT", mapNameLeft: "ASCENT", mapNameRight: "ASCENT",
+    mapName: "ASCENT", mapNameLeft: "ASCENT",
     queueName: "COMPETITIVE", duration: "38:24",
-    mapImageLeft: "", mapImageRight: "",
+    mapImageLeft: "", sponsorImage: "",
   },
   mvp: {
     left:  { agent: "JETT",  name: "HIEU#VN2",   kills: 24, deaths: 12, acs: 286, portrait: "" },
@@ -59,6 +59,10 @@ function applyOverlayConfig(cfg) {
   if (cfg.cell2Color) root.setProperty("--cell2-rgb", hexToRgb(cfg.cell2Color));
   if (cfg.cell2Opacity != null) root.setProperty("--cell2-a", cfg.cell2Opacity);
   if (cfg.fontFamily)  root.setProperty("--font-overlay", `"${cfg.fontFamily}"`);
+  if (cfg.headerTextColor) root.setProperty("--header-text", cfg.headerTextColor);
+  if (cfg.bodyTextColor)   root.setProperty("--body-text",   cfg.bodyTextColor);
+  if (cfg.headerBgColor)   root.setProperty("--header-bg-rgb", hexToRgb(cfg.headerBgColor));
+  if (cfg.headerBgOpacity != null) root.setProperty("--header-bg-a", cfg.headerBgOpacity);
 
   const bgEl = document.getElementById("bg-layer");
   if (bgEl) {
@@ -97,13 +101,10 @@ function render(data) {
   setImg("rightTeamLogo",    m.rightTeamLogo || "");
   setImg("leagueLogo",       m.leagueLogo    || "");
   setImg("mapImageLeft",  m.mapImageLeft  || "");
-  setImg("mapImageRight", m.mapImageRight || "");
+  setImg("sponsorImage",  m.sponsorImage  || "");
 
-  /* Config map names + images take priority over demo/match data */
-  setText('[data-bind="mapNameLeft"]',  (_overlayConfig.mapNameLeft  || m.mapNameLeft  || "MAP").toUpperCase());
-  setText('[data-bind="mapNameRight"]', (_overlayConfig.mapNameRight || m.mapNameRight || "MAP").toUpperCase());
-  if (_overlayConfig.mapImageLeft)  setImg("mapImageLeft",  _overlayConfig.mapImageLeft);
-  if (_overlayConfig.mapImageRight) setImg("mapImageRight", _overlayConfig.mapImageRight);
+  /* Map name auto from match data */
+  setText('[data-bind="mapNameLeft"]',  (m.mapNameLeft  || "MAP").toUpperCase());
 
   /* player rows */
   data.rows.slice(0, 4).forEach((row, i) => {
@@ -161,6 +162,7 @@ function buildPostgameData(match, myPuuid) {
   const duration  = `${Math.floor(durSec / 60)}:${String(durSec % 60).padStart(2, "0")}`;
 
   const cfg = _overlayConfig;
+  const mapId = match.metadata?.map?.id ?? "";
 
   return {
     match: {
@@ -174,12 +176,11 @@ function buildPostgameData(match, myPuuid) {
       leftResult:     isTie ? "THUA" : (leftTeam?.won  ? "THẮNG" : "THUA"),
       rightResult:    isTie ? "THUA" : (rightTeam?.won ? "THẮNG" : "THUA"),
       mapName,
-      mapNameLeft:  (cfg.mapNameLeft  || mapName),
-      mapNameRight: (cfg.mapNameRight || mapName),
+      mapNameLeft:  mapName,
       queueName,
       duration,
-      mapImageLeft:  cfg.mapImageLeft  || "",
-      mapImageRight: cfg.mapImageRight || "",
+      mapImageLeft:  mapId ? `https://media.valorant-api.com/maps/${mapId}/splash.png` : "",
+      sponsorImage:  cfg.sponsorImage || "",
     },
     mvp: {
       left: {

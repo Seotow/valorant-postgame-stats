@@ -10,11 +10,14 @@ Sử dụng [Henrik Dev API v4](https://docs.henrikdev.xyz/) để lấy dữ li
 
 ## Tính năng
 
-- Hiển thị bảng điểm đầy đủ 2 đội (agent, K/D/A, ACS, điểm số)
+- Hiển thị bảng điểm đầy đủ 2 đội (agent, K/D, ACS, điểm số)
 - Tự động nhận diện MVP của mỗi đội
 - Cập nhật real-time qua SSE — không cần reload OBS
-- Tùy chỉnh tên đội, logo, hình bản đồ (panel trái/phải), màu sắc, ảnh nền
+- Panel trái: ảnh bản đồ tự động từ trận đấu đang chọn
+- Panel phải: ảnh nhà tài trợ (tùy chỉnh)
+- Tùy chỉnh màu sắc đầy đủ: màu chủ đạo, nền header, màu chữ header / nội dung
 - Dashboard quản lý tích hợp: lọc lịch sử trận, cấu hình overlay trực tiếp
+- Hỗ trợ **Custom Overlay**: tự thiết kế HTML/CSS, lấy data tự động qua `data-bind`
 
 ---
 
@@ -95,22 +98,23 @@ Chuyển sang tab **🎨 OVERLAY** để tùy chỉnh giao diện phát sóng.
 |--------|-------|
 | Logo giải | Hiển thị ở trung tâm header overlay |
 
-#### Hình bản đồ (Panel)
+#### Panel bản đồ & nhà tài trợ
 
-Overlay có **2 panel bản đồ** ở cột ngoài cùng trái và phải:
-
-1. Nhấn tab **← PANEL TRÁI** hoặc **PANEL PHẢI →** để chọn panel đang chỉnh
-2. Nhấn vào ô bản đồ trong lưới để chọn ảnh (ảnh cinematic 1920×1080 từ valorant-api.com)
-3. Nhấn **✕ Xóa** để bỏ chọn bản đồ cho panel đang active
-4. Tên bản đồ sẽ hiển thị tự động ở dưới panel
+| Panel | Nội dung |
+|-------|---------|
+| **Trái** | Ảnh bản đồ — tự động lấy từ trận đấu đang chọn (không cần cấu hình) |
+| **Phải** | Ảnh nhà tài trợ — tải lên từ tab Config |
 
 #### Màu sắc
 
 | Cài đặt | Mô tả |
 |---------|-------|
-| Màu chủ đạo | Màu accent (header, đường viền, highlight) — mặc định `#ff5a00` |
-| Ô nền (tối) | Màu nền ô dữ liệu đội trái — điều chỉnh opacity |
-| Ô nền 2 | Màu nền ô dữ liệu đội phải |
+| Màu chủ đạo | Màu accent (đường viền, highlight, ribbon MVP) — mặc định `#ff5a00` |
+| Ô nền (tối) | Màu nền ô dữ liệu player — điều chỉnh opacity |
+| Ô nền 2 | Màu nền ô thứ cấp |
+| Nền header | Màu nền riêng cho vùng header (tên đội, tỷ số) — độc lập với ô nền |
+| Chữ header | Màu chữ toàn bộ vùng header |
+| Chữ nội dung | Màu chữ vùng dưới header (MVP, tên player, stats) |
 
 #### Nền Overlay
 
@@ -123,6 +127,7 @@ Overlay có **2 panel bản đồ** ở cột ngoài cùng trái và phải:
 |---------|-------|
 | Font overlay | Font chữ sử dụng trong overlay (Tungsten, Arial, Impact, Tahoma) |
 | Fallback icon | Icon mặc định khi không tìm được ảnh agent |
+| Ảnh nhà tài trợ | Hiển thị ở panel phải (cột ngoài cùng bên phải) |
 
 #### Lưu cấu hình
 
@@ -143,26 +148,51 @@ Nhấn **💾 Lưu & Áp dụng** — overlay OBS cập nhật ngay, không cầ
 
 ---
 
+## Custom Overlay
+
+Bạn có thể tự thiết kế layout HTML/CSS riêng mà vẫn nhận data live từ server.
+
+Đặt file vào thư mục `custom/` và truy cập qua:
+
+```
+http://localhost:7123/custom/<tên-file>.html
+```
+
+File HTML chỉ cần dùng các attribute `data-bind`, `data-bind-img`, `data-round-*` và include script:
+
+```html
+<script src="/static/js/overlay.js"></script>
+```
+
+Xem hướng dẫn đầy đủ và ví dụ trong [custom/README.md](custom/README.md).
+
+---
+
 ## Cấu trúc thư mục
 
 ```
 valorant-postgame-stats/
 ├── app.py                  # Flask backend + tất cả API routes
 ├── config.json             # Tài khoản VALORANT (gitignored)
-├── overlay-config.json     # Cấu hình overlay: logo, màu, bản đồ (gitignored)
+├── overlay-config.json     # Cấu hình overlay: logo, màu, ảnh (gitignored)
 ├── requirements.txt
 ├── index.html              # Dashboard: lịch sử + cấu hình overlay
 ├── preview.html            # Overlay 1920×1080 cho OBS
-├── font/                   # SVN-Tungsten (Black, Bold, Semibold, Book)
+├── custom/                 # Custom overlay layouts (HTML/CSS tự viết)
+│   ├── README.md           # Hướng dẫn custom overlay
+│   ├── template.html       # Template trống có chú thích đầy đủ
+│   ├── example-scoreboard.html
+│   └── example-scoreboard.css
 └── static/
     ├── css/
     │   ├── index.css       # Giao diện dashboard
     │   └── overlay.css     # Giao diện overlay OBS
+    ├── fonts/              # SVN-Tungsten (Black, Bold, Semibold, Book, ...)
     ├── img/
     │   └── preview.png     # Ảnh xem trước README
     └── js/
         ├── index.js        # Logic dashboard
-        └── overlay.js      # Logic overlay + SSE listener
+        └── overlay.js      # Logic overlay + SSE listener + data binding
 ```
 
 ---
@@ -172,7 +202,8 @@ valorant-postgame-stats/
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
 | `GET` | `/` | Dashboard chính |
-| `GET` | `/preview.html` | Overlay OBS |
+| `GET` | `/preview.html` | Overlay OBS mặc định |
+| `GET` | `/custom/<file>` | Serve custom overlay từ thư mục `custom/` |
 | `GET` | `/api/config` | Lấy cấu hình tài khoản |
 | `POST` | `/api/config` | Lưu cấu hình tài khoản |
 | `GET` | `/api/history` | Lịch sử trận đấu |
@@ -180,5 +211,4 @@ valorant-postgame-stats/
 | `GET` | `/api/current-match` | Dữ liệu trận hiện tại |
 | `GET` | `/api/overlay-config` | Lấy cấu hình overlay |
 | `POST` | `/api/overlay-config` | Lưu cấu hình overlay |
-| `GET` | `/api/maps` | Danh sách bản đồ + ảnh |
 | `GET` | `/api/events` | SSE stream cho overlay |

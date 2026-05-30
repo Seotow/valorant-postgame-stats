@@ -1,0 +1,59 @@
+<!doctype html>
+<!--
+  VALORANT POSTGAME — Example: Minimal Scoreboard
+  ─────────────────────────────────────────────────
+  Layout: Thanh ngang duy nhất hiển thị 2 đội + tỷ số + tên bản đồ.
+  Phù hợp dùng làm lower-third hoặc overlay gọn cho stream.
+
+  URL: http://127.0.0.1:7123/custom/example-scoreboard.html
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scoreboard Overlay</title>
+  <link rel="stylesheet" href="/custom/example-scoreboard.css" />
+</head>
+<body>
+
+  <div id="bg-layer"></div>
+
+  <div class="scoreboard">
+
+    <!-- Đội trái -->
+    <div class="team left">
+      <img class="team-logo" data-bind-img="leftTeamLogo" src="" alt="" />
+      <div class="team-info">
+        <div class="team-name" data-bind="leftTeamName">TEAM A</div>
+        <div class="team-result win" data-bind="leftResult">THẮNG</div>
+      </div>
+    </div>
+
+    <!-- Tỷ số giữa -->
+    <div class="center-block">
+      <div class="scores">
+        <span class="score" data-bind="leftScore">0</span>
+        <span class="score-sep">:</span>
+        <span class="score" data-bind="rightScore">0</span>
+      </div>
+      <div class="meta-row">
+        <img class="league-logo" data-bind-img="leagueLogo" src="" alt="" />
+        <span class="map-name" data-bind="mapName">MAP</span>
+      </div>
+    </div>
+
+    <!-- Đội phải -->
+    <div class="team right">
+      <div class="team-info right">
+        <div class="team-name" data-bind="rightTeamName">TEAM B</div>
+        <div class="team-result" data-bind="rightResult">THUA</div>
+      </div>
+      <img class="team-logo" data-bind-img="rightTeamLogo" src="" alt="" />
+    </div>
+
+  </div>
+
+  <!-- BẮT BUỘC -->
+  <script src="/static/js/overlay.js"></script>
+</body>
+</html>

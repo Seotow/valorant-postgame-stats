@@ -4,12 +4,7 @@ let activeQueue = "";
 
 var selectedMatchId   = "";
 
-var _fileData         = {};   // field → base64 dataURL (locally picked files)
-var _selectedMapLeft      = "";  // URL of map image chosen for left panel
-var _selectedMapRight     = "";  // URL of map image chosen for right panel
-var _selectedMapNameLeft  = "";  // display name for left panel
-var _selectedMapNameRight = "";  // display name for right panel
-var _activeMapPanel       = "left";  // which panel the map grid is targeting
+var _fileData = {};   // field → base64 dataURL (locally picked files)
 
 function setStatus(state, text) {
   document.getElementById("dot").className = "dot " + state;
@@ -165,7 +160,6 @@ async function boot() {
   loadOverlayConfig();
   initConfigForm();
   initFilePickers();
-  loadMaps();
   initTabBar();
   initSseStatus();
 }
@@ -209,13 +203,13 @@ async function loadOverlayConfig() {
     });
 
     /* color pickers */
-    ["primaryColor", "cellColor", "cell2Color", "overlayBgColor"].forEach(function(key) {
+    ["primaryColor", "cellColor", "cell2Color", "overlayBgColor", "headerTextColor", "bodyTextColor", "headerBgColor"].forEach(function(key) {
       var el = document.getElementById("cfg-" + key);
       if (el && cfg[key]) el.value = cfg[key];
     });
 
     /* opacity sliders */
-    ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity"].forEach(function(key) {
+    ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity", "headerBgOpacity"].forEach(function(key) {
       var slider = document.getElementById("cfg-" + key);
       var label  = document.getElementById("cfg-" + key + "-val");
       if (slider && cfg[key] != null) {
@@ -225,7 +219,7 @@ async function loadOverlayConfig() {
     });
 
     /* file-backed images: restore preview from stored base64 */
-    ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon"].forEach(function(key) {
+    ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon", "sponsorImage"].forEach(function(key) {
       if (cfg[key]) {
         _fileData[key] = cfg[key];
         var prev = document.getElementById("prev-" + key);
@@ -233,18 +227,12 @@ async function loadOverlayConfig() {
       }
     });
 
-    /* map panel selections */
-    _selectedMapLeft      = cfg.mapImageLeft  || "";
-    _selectedMapRight     = cfg.mapImageRight || "";
-    _selectedMapNameLeft  = cfg.mapNameLeft   || "";
-    _selectedMapNameRight = cfg.mapNameRight  || "";
-    updateMapTileSelection();
   } catch (_) {}
 }
 
 function initConfigForm() {
   /* opacity slider live labels */
-  ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity"].forEach(function(key) {
+  ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity", "headerBgOpacity"].forEach(function(key) {
     var slider = document.getElementById("cfg-" + key);
     var label  = document.getElementById("cfg-" + key + "-val");
     if (!slider) return;
@@ -253,32 +241,12 @@ function initConfigForm() {
     });
   });
 
-  /* map panel tab switching */
-  document.querySelectorAll(".map-panel-tab").forEach(function(btn) {
-    btn.addEventListener("click", function() {
-      _activeMapPanel = btn.dataset.panel;
-      document.querySelectorAll(".map-panel-tab").forEach(function(b) { b.classList.remove("active"); });
-      btn.classList.add("active");
-      updateMapTileSelection();
-    });
-  });
-
-  /* clear map selection for active panel */
-  var clearMapBtn = document.getElementById("btn-map-clear");
-  if (clearMapBtn) {
-    clearMapBtn.addEventListener("click", function() {
-      if (_activeMapPanel === "left") { _selectedMapLeft  = ""; _selectedMapNameLeft  = ""; }
-      else                            { _selectedMapRight = ""; _selectedMapNameRight = ""; }
-      updateMapTileSelection();
-    });
-  }
-
   /* save button */
   document.getElementById("cfg-save-btn").addEventListener("click", saveOverlayConfig);
 }
 
 function initFilePickers() {
-  ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon"].forEach(function(field) {
+  ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon", "sponsorImage"].forEach(function(field) {
     var input = document.getElementById("file-" + field);
     if (!input) return;
     input.addEventListener("change", function() {
@@ -306,50 +274,6 @@ function initFilePickers() {
   });
 }
 
-async function loadMaps() {
-  var grid = document.getElementById("map-grid");
-  if (!grid) return;
-  try {
-    var resp = await fetch("/api/maps");
-    if (!resp.ok) throw new Error("HTTP " + resp.status + " — khởi động lại server?");
-    var maps = await resp.json();
-    if (!Array.isArray(maps)) throw new Error("Định dạng dữ liệu không hợp lệ");
-    /* filter out The Range and any map without a background image */
-    maps = maps.filter(function(m) {
-      return m.displayName && m.splash;
-    });
-    grid.innerHTML = maps.map(function(m) {
-      var thumb = m.listViewIcon || m.splash;
-      var panel = m.splash;
-      return '<button class="map-tile" type="button" data-img="' + panel
-        + '" data-name="' + m.displayName
-        + '" title="' + m.displayName + '">'
-        + '<img src="' + thumb + '" alt="' + m.displayName + '" loading="lazy" />'
-        + '<span>' + m.displayName + '</span>'
-        + '</button>';
-    }).join("");
-    grid.addEventListener("click", function(e) {
-      var tile = e.target.closest(".map-tile");
-      if (!tile) return;
-      var url  = tile.dataset.img;
-      var name = tile.dataset.name || "";
-      if (_activeMapPanel === "left") { _selectedMapLeft  = url; _selectedMapNameLeft  = name; }
-      else                            { _selectedMapRight = url; _selectedMapNameRight = name; }
-      updateMapTileSelection();
-    });
-    updateMapTileSelection();
-  } catch (err) {
-    if (grid) grid.innerHTML = '<div class="map-loading">Lỗi: ' + err.message + '</div>';
-  }
-}
-
-function updateMapTileSelection() {
-  var current = _activeMapPanel === "left" ? _selectedMapLeft : _selectedMapRight;
-  document.querySelectorAll(".map-tile").forEach(function(t) {
-    t.classList.toggle("active", current !== "" && t.dataset.img === current);
-  });
-}
-
 async function saveOverlayConfig() {
   var body = {};
 
@@ -360,27 +284,21 @@ async function saveOverlayConfig() {
   });
 
   /* colors */
-  ["primaryColor", "cellColor", "cell2Color", "overlayBgColor"].forEach(function(key) {
+  ["primaryColor", "cellColor", "cell2Color", "overlayBgColor", "headerTextColor", "bodyTextColor", "headerBgColor"].forEach(function(key) {
     var el = document.getElementById("cfg-" + key);
     if (el) body[key] = el.value;
   });
 
   /* opacities */
-  ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity"].forEach(function(key) {
+  ["primaryOpacity", "cellOpacity", "cell2Opacity", "overlayBgOpacity", "headerBgOpacity"].forEach(function(key) {
     var el = document.getElementById("cfg-" + key);
     if (el) body[key] = parseFloat(el.value);
   });
 
   /* file-backed images (base64 dataURL or empty string) */
-  ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon"].forEach(function(key) {
+  ["leftTeamLogo", "rightTeamLogo", "leagueLogo", "overlayBg", "fallbackIcon", "sponsorImage"].forEach(function(key) {
     body[key] = _fileData[key] !== undefined ? _fileData[key] : "";
   });
-
-  /* map panels */
-  body.mapImageLeft  = _selectedMapLeft      || "";
-  body.mapImageRight = _selectedMapRight     || "";
-  body.mapNameLeft   = _selectedMapNameLeft  || "";
-  body.mapNameRight  = _selectedMapNameRight || "";
 
   try {
     await fetch("/api/overlay-config", {

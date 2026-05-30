@@ -41,6 +41,10 @@
   --black:        #050505;
   --line:         4px;
   --font-overlay: "Tungsten";
+  --header-text:   #f5f5f5;
+  --body-text:     #f5f5f5;
+  --header-bg-rgb: 52, 52, 52;
+  --header-bg-a:   1;
 }
 
 /* shorthand helpers used throughout */
@@ -85,7 +89,7 @@ body { display: grid; place-items: center; }
 .score-header {
   height: 218px;
   /* background: rgba(var(--primary-rgb), var(--primary-a)); */
-  color: var(--white);
+  color: var(--header-text);
   display: grid;
   grid-template-columns: 280px 1fr 350px 1fr 280px;
   align-items: center;
@@ -94,7 +98,7 @@ body { display: grid; place-items: center; }
 
 .team-block {
   height: 100%;
-  background: rgba(var(--cell-rgb), var(--cell-a));
+  background: rgba(var(--header-bg-rgb), var(--header-bg-a));
   display: flex;
   align-items: center;
   gap: 20px;
@@ -138,7 +142,7 @@ body { display: grid; place-items: center; }
 
 .league-center {
   height: 100%;
-  background: rgba(var(--cell2-rgb), var(--cell2-a));
+  background: rgba(var(--header-bg-rgb), var(--header-bg-a));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -232,13 +236,13 @@ body { display: grid; place-items: center; }
 
 .player-name-small {
   font-size: 24px; line-height: 0.95;
-  color: var(--white);
+  color: var(--body-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .player-name-large {
   margin-top: 10px;
   font-size: 38px; line-height: 0.9;
-  color: var(--white);
+  color: var(--body-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
@@ -270,16 +274,16 @@ body { display: grid; place-items: center; }
 
 .stat-val {
   font-size: 88px; font-weight: 900;
-  line-height: 0.85; color: var(--white);
+  line-height: 0.85; color: var(--body-text);
 }
 .stat-sep {
   font-size: 52px; font-weight: 700;
-  color: var(--white); opacity: 0.35;
+  color: var(--body-text); opacity: 0.35;
   line-height: 0.85;
 }
 .stat-deaths {
   font-size: 64px; font-weight: 700;
-  color: var(--white); opacity: 0.52;
+  color: var(--body-text); opacity: 0.52;
   line-height: 0.85;
 }
 
@@ -291,7 +295,7 @@ body { display: grid; place-items: center; }
   align-items: center;
   justify-content: center;
   background: rgba(var(--cell-rgb), var(--cell-a));
-  color: var(--white);
+  color: var(--body-text);
 }
 .mvp-label-list {
   display: flex;
@@ -334,17 +338,30 @@ body { display: grid; place-items: center; }
   border-top: var(--line) solid rgba(var(--primary-rgb), var(--primary-a));
   border-left: var(--line) solid rgba(var(--primary-rgb), var(--primary-a));
 }
+
+.sponsor-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  padding: 24px;
+  border-top: var(--line) solid rgba(var(--primary-rgb), var(--primary-a));
+  border-left: var(--line) solid rgba(var(--primary-rgb), var(--primary-a));
+  box-sizing: border-box;
+  z-index: 9;
+}
+.sponsor-art:not([src]), .sponsor-art[src=""] { display: none; }
 .map-name-label {
   position: absolute;
   bottom: 0; 
   left: 0; 
-  right: 0;
   padding: 10px 14px;
-  font-size: 26px; 
+  font-size: 30px; 
   font-weight: 700;
   color: var(--white);
-  background: linear-gradient(transparent, rgba(0,0,0,0.65));
-  text-align: center;
+  background: rgba(var(--primary-rgb), var(--primary-a));
   z-index: 10;
 }
 
@@ -374,7 +391,7 @@ body { display: grid; place-items: center; }
 
 .row-num {
   white-space: nowrap; flex-shrink: 0;
-  font-weight: 700; line-height: 0.9; color: var(--white);
+  font-weight: 700; line-height: 0.9; color: var(--body-text);
 }
 .row-line:first-child .row-num { 
   font-size: 28px; 
@@ -390,13 +407,13 @@ body { display: grid; place-items: center; }
 
 .round-row .sub {
   font-size: 21px; line-height: 0.9;
-  color: var(--white); opacity: 0.95;
+  color: var(--body-text); opacity: 0.95;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   flex: 1; min-width: 0;
 }
 .round-row .main {
   font-size: 30px; line-height: 0.9;
-  color: var(--white);
+  color: var(--body-text);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   flex: 1; min-width: 0;
 }
@@ -422,7 +439,7 @@ body { display: grid; place-items: center; }
   display: grid; place-items: center;
   text-align: center;
   background: rgba(var(--cell-rgb), var(--cell-a));
-  color: var(--white);
+  color: var(--body-text);
   padding: 10px 16px;
 }
 .round-center .label { font-size: 31px; line-height: 0.9; }

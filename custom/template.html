@@ -1,0 +1,196 @@
+<!doctype html>
+<!--
+  ╔══════════════════════════════════════════════════════════════════╗
+  ║  VALORANT POSTGAME — CUSTOM OVERLAY TEMPLATE                     ║
+  ║                                                                  ║
+  ║  Xóa những phần không cần, giữ lại binding bạn muốn dùng.        ║
+  ║  Bắt buộc giữ thẻ <script> ở cuối body.                          ║
+  ║                                                                  ║
+  ║  Mở tại: http://127.0.0.1:7123/custom/template.html              ║
+  ╚══════════════════════════════════════════════════════════════════╝
+-->
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Custom Overlay</title>
+  <style>
+    /* Tùy chỉnh CSS ở đây, hoặc dùng <link> đến file CSS riêng */
+
+    /* CSS variables được set tự động từ overlay-config:
+       --primary-rgb, --primary-a
+       --cell-rgb, --cell-a
+       --cell2-rgb, --cell2-a
+       --header-bg-rgb, --header-bg-a
+       --header-text
+       --body-text
+       --font-overlay
+       --white, --black, --line
+    */
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: transparent;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+
+  <!--
+    ════════════════════════════════
+    NỀN ĐỘNG (optional)
+    overlay.js sẽ set background-image và background-color
+    từ overlay-config tự động nếu có element này.
+    ════════════════════════════════
+  -->
+  <!-- <div id="bg-layer" style="position:absolute;inset:0;background-size:cover;background-position:center;pointer-events:none;"></div> -->
+
+
+  <!--
+    ════════════════════════════════
+    THÔNG TIN TRẬN ĐẤU
+    data-bind="<key>" → overlay.js ghi textContent
+    ════════════════════════════════
+  -->
+
+  <!-- Tên đội -->
+  <div data-bind="leftTeamName">TEAM A</div>
+  <div data-bind="rightTeamName">TEAM B</div>
+
+  <!-- Tỷ số -->
+  <div data-bind="leftScore">0</div>
+  <div data-bind="rightScore">0</div>
+
+  <!-- Kết quả ("THẮNG" / "THUA") -->
+  <div data-bind="leftResult">THẮNG</div>
+  <div data-bind="rightResult">THUA</div>
+
+  <!-- Bản đồ & metadata -->
+  <div data-bind="mapName">ASCENT</div>
+  <div data-bind="mapNameLeft">ASCENT</div>
+  <div data-bind="queueName">COMPETITIVE</div>
+  <div data-bind="duration">38:24</div>
+
+
+  <!--
+    ════════════════════════════════
+    HÌNH ẢNH
+    data-bind-img="<key>" → overlay.js ghi src
+    ════════════════════════════════
+  -->
+
+  <!-- Logo đội (upload từ config) -->
+  <img data-bind-img="leftTeamLogo"  src="" alt="" />
+  <img data-bind-img="rightTeamLogo" src="" alt="" />
+
+  <!-- Logo giải đấu -->
+  <img data-bind-img="leagueLogo" src="" alt="" />
+
+  <!-- Ảnh splash bản đồ (tự động từ API) -->
+  <img data-bind-img="mapImageLeft" src="" alt="" />
+
+  <!-- Ảnh nhà tài trợ (upload từ config) -->
+  <img data-bind-img="sponsorImage" src="" alt="" />
+
+  <!-- Ảnh nhân vật MVP fullsize -->
+  <img data-bind-img="leftMvpPortrait"  src="" alt="" />
+  <img data-bind-img="rightMvpPortrait" src="" alt="" />
+
+
+  <!--
+    ════════════════════════════════
+    MVP
+    ════════════════════════════════
+  -->
+
+  <!-- MVP đội trái -->
+  <div data-bind="leftMvpAgent">JETT</div>
+  <div data-bind="leftMvpName">PLAYER#TAG</div>
+  <div data-bind="leftMvpKills">0</div>
+  <div data-bind="leftMvpDeaths">0</div>
+  <div data-bind="leftMvpAcs">0</div>
+
+  <!-- MVP đội phải -->
+  <div data-bind="rightMvpAgent">REYNA</div>
+  <div data-bind="rightMvpName">PLAYER#TAG</div>
+  <div data-bind="rightMvpKills">0</div>
+  <div data-bind="rightMvpDeaths">0</div>
+  <div data-bind="rightMvpAcs">0</div>
+
+
+  <!--
+    ════════════════════════════════
+    BẢNG PLAYER (index 0–3, bỏ MVP)
+    Text: data-round-left-sub / main / kills / acs
+    Ảnh:  data-round-left-icon (img src)
+    ════════════════════════════════
+  -->
+
+  <!-- Player trái #1 (index 0) -->
+  <img data-round-left-icon="0" src="" alt="" />
+  <div data-round-left-sub="0">AGENT</div>
+  <div data-round-left-main="0">NAME#TAG</div>
+  <div data-round-left-kills="0">0</div>
+  <div data-round-left-acs="0">0</div>
+
+  <!-- Player phải #1 (index 0) -->
+  <img data-round-right-icon="0" src="" alt="" />
+  <div data-round-right-sub="0">AGENT</div>
+  <div data-round-right-main="0">NAME#TAG</div>
+  <div data-round-right-kills="0">0</div>
+  <div data-round-right-acs="0">0</div>
+
+  <!-- Player trái #2 (index 1) -->
+  <img data-round-left-icon="1" src="" alt="" />
+  <div data-round-left-sub="1">AGENT</div>
+  <div data-round-left-main="1">NAME#TAG</div>
+  <div data-round-left-kills="1">0</div>
+  <div data-round-left-acs="1">0</div>
+
+  <!-- Player phải #2 (index 1) -->
+  <img data-round-right-icon="1" src="" alt="" />
+  <div data-round-right-sub="1">AGENT</div>
+  <div data-round-right-main="1">NAME#TAG</div>
+  <div data-round-right-kills="1">0</div>
+  <div data-round-right-acs="1">0</div>
+
+  <!-- Player trái #3 (index 2) -->
+  <img data-round-left-icon="2" src="" alt="" />
+  <div data-round-left-sub="2">AGENT</div>
+  <div data-round-left-main="2">NAME#TAG</div>
+  <div data-round-left-kills="2">0</div>
+  <div data-round-left-acs="2">0</div>
+
+  <!-- Player phải #3 (index 2) -->
+  <img data-round-right-icon="2" src="" alt="" />
+  <div data-round-right-sub="2">AGENT</div>
+  <div data-round-right-main="2">NAME#TAG</div>
+  <div data-round-right-kills="2">0</div>
+  <div data-round-right-acs="2">0</div>
+
+  <!-- Player trái #4 (index 3) -->
+  <img data-round-left-icon="3" src="" alt="" />
+  <div data-round-left-sub="3">AGENT</div>
+  <div data-round-left-main="3">NAME#TAG</div>
+  <div data-round-left-kills="3">0</div>
+  <div data-round-left-acs="3">0</div>
+
+  <!-- Player phải #4 (index 3) -->
+  <img data-round-right-icon="3" src="" alt="" />
+  <div data-round-right-sub="3">AGENT</div>
+  <div data-round-right-main="3">NAME#TAG</div>
+  <div data-round-right-kills="3">0</div>
+  <div data-round-right-acs="3">0</div>
+
+
+  <!--
+    ════════════════════════════════
+    BẮT BUỘC — giữ nguyên dòng này
+    ════════════════════════════════
+  -->
+  <script src="/static/js/overlay.js"></script>
+</body>
+</html>

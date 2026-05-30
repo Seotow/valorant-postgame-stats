@@ -4,7 +4,11 @@ Overlay hiển thị kết quả trận đấu VALORANT sau trận, thiết kế
 
 Sử dụng [Henrik Dev API v4](https://docs.henrikdev.xyz/) để lấy dữ liệu trận đấu.
 
+Thông số sau trận đấu
 ![Preview](static/img/preview.png)
+
+MVP Card
+![MVP](static/img/mvp.png)
 
 ---
 
@@ -17,6 +21,7 @@ Sử dụng [Henrik Dev API v4](https://docs.henrikdev.xyz/) để lấy dữ li
 - Panel phải: ảnh nhà tài trợ (tùy chỉnh)
 - Tùy chỉnh màu sắc đầy đủ: màu chủ đạo, nền header, màu chữ header / nội dung
 - Dashboard quản lý tích hợp: lọc lịch sử trận, cấu hình overlay trực tiếp
+- **Overlay Match MVP** (`/mvp.html`): thẻ MVP toàn bản đồ với ảnh agent nền + stats nâng cao
 - Hỗ trợ **Custom Overlay**: tự thiết kế HTML/CSS, lấy data tự động qua `data-bind`
 
 ---
@@ -35,7 +40,7 @@ Sử dụng [Henrik Dev API v4](https://docs.henrikdev.xyz/) để lấy dữ li
 ### 1. Clone repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/valorant-postgame-stats.git
+git clone https://github.com/Seotoww/valorant-postgame-stats.git
 cd valorant-postgame-stats
 ```
 
@@ -139,12 +144,21 @@ Nhấn **💾 Lưu & Áp dụng** — overlay OBS cập nhật ngay, không cầ
 
 ## Cài đặt OBS
 
+### Overlay Postgame (bảng điểm)
+
 1. Trong OBS, thêm nguồn **Browser Source**
 2. Nhập URL: `http://localhost:7123/preview.html`
 3. Đặt kích thước: **Width = 1920 / Height = 1080**
 4. *(Tùy chọn)* Bật **"Refresh browser when scene becomes active"**
 
-> Mỗi khi chọn trận mới từ dashboard, overlay cập nhật tự động — không cần bất kỳ thao tác nào trong OBS.
+### Overlay Match MVP
+
+1. Thêm nguồn **Browser Source** thứ hai
+2. Nhập URL: `http://localhost:7123/mvp.html`
+3. Đặt kích thước: **Width = 1920 / Height = 1080**
+4. Dùng khi cần highlight player xuất sắc nhất toàn trận (không phân biệt thắng thua)
+
+> Mỗi khi chọn trận mới từ dashboard, cả hai overlay cập nhật tự động — không cần bất kỳ thao tác nào trong OBS.
 
 ---
 
@@ -202,13 +216,15 @@ valorant-postgame-stats/
 | Method | Endpoint | Mô tả |
 |--------|----------|-------|
 | `GET` | `/` | Dashboard chính |
-| `GET` | `/preview.html` | Overlay OBS mặc định |
+| `GET` | `/preview.html` | Overlay postgame OBS |
+| `GET` | `/mvp.html` | Overlay Match MVP OBS |
 | `GET` | `/custom/<file>` | Serve custom overlay từ thư mục `custom/` |
 | `GET` | `/api/config` | Lấy cấu hình tài khoản |
 | `POST` | `/api/config` | Lưu cấu hình tài khoản |
 | `GET` | `/api/history` | Lịch sử trận đấu |
 | `POST` | `/api/set-match` | Đẩy trận đấu lên overlay |
-| `GET` | `/api/current-match` | Dữ liệu trận hiện tại |
+| `GET` | `/api/current-match` | Dữ liệu trận hiện tại (full v4) |
+| `GET` | `/api/current-mvp` | Stats MVP trận hiện tại (ACS, KDA, DPR, FK%, KAST%) |
 | `GET` | `/api/overlay-config` | Lấy cấu hình overlay |
 | `POST` | `/api/overlay-config` | Lưu cấu hình overlay |
 | `GET` | `/api/events` | SSE stream cho overlay |

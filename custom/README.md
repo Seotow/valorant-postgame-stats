@@ -197,12 +197,134 @@ Ví dụ sử dụng trong CSS:
 
 ---
 
-## Mẹo
+## Mẹo (overlay.js)
 
 - Có thể dùng **nhiều element cùng một binding** — `overlay.js` dùng `querySelectorAll`, tất cả đều được update.
 - Không cần `data-bind` nào bắt buộc — chỉ dùng những gì layout cần.
 - Để xem trước khi chưa chọn trận, `overlay.js` tự động hiển thị **demo data**.
 - CSS của bạn có thể đặt bất kỳ đâu: `custom/`, `static/css/`, hoặc inline trong HTML.
+
+---
+
+## Overlay Match MVP — dùng `mvp.js`
+
+Nếu bạn muốn tạo layout riêng cho **Match MVP** (player có ACS cao nhất toàn trận), dùng `mvp.js` thay vì `overlay.js`. Script này gọi `/api/current-mvp` và cũng lắng nghe SSE để tự động cập nhật.
+
+```html
+<!-- BẮT BUỘC: thay overlay.js bằng mvp.js -->
+<script src="/static/js/mvp.js"></script>
+```
+
+> ⚠️ **Không dùng cả hai cùng lúc** trong một file HTML.
+
+### Cách hoạt động
+
+```
+Server ──▶ /api/current-mvp ──▶ mvp.js render() ──▶ điền theo id=""
+```
+
+Khác với `overlay.js`, `mvp.js` dùng **`id` cố định** thay vì `data-bind`. Bạn đặt đúng `id` vào element là dữ liệu tự điền.
+
+### Tham chiếu: Tất cả `id` của mvp.js
+
+#### Hình ảnh agent
+
+| `id` | Nội dung |
+|---|---|
+| `mvp-agent-bg` | `<img>` — ảnh nền agent có màu (`background.png` từ valorant-api.com) |
+| `mvp-agent-portrait` | `<img>` — fullportrait agent nền trong (`fullportrait.png`) |
+
+#### Thông tin player
+
+| `id` | Nội dung | Ví dụ |
+|---|---|---|
+| `mvp-name` | Tên game (Riot ID) | `HYY` |
+| `mvp-team-name` | Tên đội (lấy từ overlay-config theo đội nào) | `RRQ` |
+| `mvp-team-logo` | `<img>` — logo đội (lấy từ overlay-config) | — |
+
+#### Stats nâng cao
+
+| `id` | Chỉ số | Cách tính | Ví dụ |
+|---|---|---|---|
+| `mvp-acs` | ĐGTTB (ACS) | `score / total_rounds` | `281` |
+| `mvp-kda` | KDA | `kills/deaths` | `22/19` |
+| `mvp-dpr` | Sát thương/vòng đấu | Tổng damage từ rounds data / rounds | `160.9` |
+| `mvp-fk` | % Chiến công đầu | Vòng mở màn do player này giết đầu tiên / tổng vòng × 100 | `17.4` |
+| `mvp-kast` | KAST % | Vòng có Kill / Assist / Survive / Trade (cửa sổ 5 s) / tổng × 100 | `78.3` |
+
+### Ví dụ layout MVP tối giản
+
+```html
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Custom MVP Lower Third</title>
+  <style>
+    body { background: transparent; font-family: "Tungsten", sans-serif; text-transform: uppercase; }
+    .card { display: flex; align-items: center; gap: 24px; background: rgba(var(--cell-rgb), var(--cell-a)); padding: 20px 32px; }
+    img  { height: 80px; object-fit: contain; }
+    .name  { font-size: 64px; font-weight: 900; color: var(--header-text); }
+    .label { font-size: 16px; color: var(--body-text); opacity: 0.6; }
+    .stat  { font-size: 36px; font-weight: 700; color: rgba(var(--primary-rgb), var(--primary-a)); }
+  </style>
+</head>
+<body>
+  <div class="bg-layer" id="bg-layer"></div>
+
+  <div class="card">
+    <img id="mvp-agent-portrait" src="" alt="" />
+
+    <div>
+      <div class="name"  id="mvp-name">PLAYER</div>
+      <div class="label">MVP · ĐGTTB</div>
+      <div class="stat"  id="mvp-acs">0</div>
+    </div>
+
+    <div>
+      <div class="label">KDA</div>      <div class="stat" id="mvp-kda">0/0</div>
+      <div class="label">KAST %</div>  <div class="stat" id="mvp-kast">0</div>
+    </div>
+
+    <div>
+      <div class="label">SAT/VĐ</div>  <div class="stat" id="mvp-dpr">0</div>
+      <div class="label">FK %</div>    <div class="stat" id="mvp-fk">0</div>
+    </div>
+  </div>
+
+  <!-- dùng mvp.js, KHÔNG phải overlay.js -->
+  <script src="/static/js/mvp.js"></script>
+</body>
+</html>
+```
+
+### Dữ liệu JSON thô từ `/api/current-mvp`
+
+Nếu bạn muốn viết hoàn toàn script riêng, endpoint này trả về:
+
+```json
+{
+  "puuid":            "...",
+  "name":             "HYY",
+  "tag":              "RRQ",
+  "team_id":          "Blue",
+  "is_my_team":       true,
+  "agent_id":         "a3bab",
+  "agent_name":       "Neon",
+  "acs":              281,
+  "kills":            22,
+  "deaths":           19,
+  "assists":          5,
+  "damage_per_round": 160.9,
+  "first_kill_pct":   17.4,
+  "kast_pct":         78.3
+}
+```
+
+URL ảnh agent từ `agent_id`:
+- Nền có màu: `https://media.valorant-api.com/agents/{agent_id}/background.png`
+- Fullportrait trong suốt: `https://media.valorant-api.com/agents/{agent_id}/fullportrait.png`
+- Icon nhỏ: `https://media.valorant-api.com/agents/{agent_id}/displayicon.png`
 
 ---
 

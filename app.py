@@ -147,6 +147,11 @@ def overlay():
     return send_from_directory(".", "preview.html")
 
 
+@app.route("/mvp.html")
+def mvp_overlay():
+    return send_from_directory(".", "mvp.html")
+
+
 @app.route("/custom/<path:filename>")
 def custom_overlay(filename: str):
     return send_from_directory("custom", filename)
@@ -334,6 +339,140 @@ def api_current_match():
     if not _current_match_id:
         return jsonify({"error": "No match selected yet"}), 404
     return api_match(_current_match_id)
+
+
+# ─── MVP stats ────────────────────────────────────────────────────────────────
+
+def compute_mvp_stats(match: dict, my_puuid: str = "") -> dict | None:
+    """Find the match MVP (highest ACS, any team) and compute advanced stats.
+
+    Advanced stats derived from raw round/kill data:
+    - acs             : stats.score / total_rounds
+    - damage_per_round: sum of rounds[].player_stats[].damage[].damage / total_rounds
+    - first_kill_pct  : rounds where player secured the opening kill / total_rounds * 100
+    - kast_pct        : rounds where player got Kill, Assist, Survived, or was Traded / total_rounds * 100
+    """
+    players      = match.get("players", [])
+    rounds_data  = match.get("rounds",  [])
+    kills_global = match.get("kills",   [])
+
+    total_rounds = max(len(rounds_data), 1)
+
+    # Index global kill events by round number
+    kills_by_round: dict[int, list] = {}
+    for k in kills_global:
+        kills_by_round.setdefault(k.get("round", 0), []).append(k)
+
+    def acs(p: dict) -> float:
+        return p.get("stats", {}).get("score", 0) / total_rounds
+
+    best = max(players, key=acs, default=None)
+    if not best:
+        return None
+
+    puuid   = best["puuid"]
+    stats   = best.get("stats", {})
+    kills   = stats.get("kills",   0)
+    deaths  = stats.get("deaths",  0)
+    assists = stats.get("assists", 0)
+
+    # Damage per round — use top-level stats.damage.dealt (total across match)
+    total_damage = best.get("stats", {}).get("damage", {}).get("dealt", 0)
+    damage_per_round = round(total_damage / total_rounds, 1)
+
+    # First kill %: rounds where this player got the earliest kill of the round
+    # v4 kills[].killer is an object { puuid, name, tag, team }
+    first_kill_count = sum(
+        1 for rnd_kills in kills_by_round.values()
+        if rnd_kills
+        and min(rnd_kills, key=lambda k: k.get("time_in_round_in_ms", 0))
+               .get("killer", {}).get("puuid") == puuid
+    )
+    first_kill_pct = round(first_kill_count / total_rounds * 100, 1)
+
+    # KAST: per round check
+    # v4: kills[].killer.puuid, kills[].victim.puuid, kills[].assistants[].puuid
+    kast_count = 0
+    for rnd_idx in range(total_rounds):
+        rnd_kills = kills_by_round.get(rnd_idx, [])
+
+        got_kill   = any(k.get("killer", {}).get("puuid") == puuid for k in rnd_kills)
+        got_assist = any(
+            any(a.get("puuid") == puuid for a in k.get("assistants", []))
+            for k in rnd_kills
+        )
+        got_killed = any(k.get("victim", {}).get("puuid") == puuid for k in rnd_kills)
+        survived   = not got_killed
+
+        # Trade: player was killed but their killer was killed within 5 s
+        traded = False
+        if got_killed:
+            for death in (k for k in rnd_kills if k.get("victim", {}).get("puuid") == puuid):
+                killer  = death.get("killer", {}).get("puuid", "")
+                death_t = death.get("time_in_round_in_ms", 0)
+                if any(
+                    k.get("victim", {}).get("puuid") == killer
+                    and 0 <= k.get("time_in_round_in_ms", 0) - death_t <= 5000
+                    for k in rnd_kills
+                ):
+                    traded = True
+                    break
+
+        if got_kill or got_assist or survived or traded:
+            kast_count += 1
+
+    kast_pct = round(kast_count / total_rounds * 100, 1)
+
+    agent    = best.get("agent", {})
+    agent_id = agent.get("id", "")
+
+    # Determine team assignment relative to logged-in player
+    my_player  = next((p for p in players if p.get("puuid") == my_puuid), None)
+    my_team_id = my_player.get("team_id", "Blue") if my_player else "Blue"
+    is_my_team = best.get("team_id", "") == my_team_id
+
+    return {
+        "puuid":            puuid,
+        "name":             best.get("name", ""),
+        "tag":              best.get("tag",  ""),
+        "team_id":          best.get("team_id", ""),
+        "is_my_team":       is_my_team,
+        "agent_id":         agent_id,
+        "agent_name":       agent.get("name", ""),
+        "acs":              round(acs(best)),
+        "kills":            kills,
+        "deaths":           deaths,
+        "assists":          assists,
+        "damage_per_round": damage_per_round,
+        "first_kill_pct":   first_kill_pct,
+        "kast_pct":         kast_pct,
+    }
+
+
+@app.route("/api/current-mvp")
+def api_current_mvp():
+    """Return advanced MVP stats for the currently selected match."""
+    if not _current_match_id:
+        return jsonify({"error": "No match selected yet"}), 404
+    try:
+        acc    = get_account()
+        cfg    = load_config()
+        region = acc["region"] or cfg["region"]
+        r = requests.get(
+            f"{BASE_URL}/valorant/v4/match/{region}/{_current_match_id}",
+            headers=henrik_headers(),
+            timeout=20,
+        )
+        r.raise_for_status()
+        match = r.json().get("data", {})
+        mvp   = compute_mvp_stats(match, acc["puuid"])
+        if not mvp:
+            return jsonify({"error": "Could not determine MVP"}), 404
+        return jsonify(mvp)
+    except ValueError as e:
+        return jsonify({"error": str(e), "setup_required": True}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/events")

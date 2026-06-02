@@ -74,7 +74,7 @@ function render(mvp) {
     ? (_cfg.leftTeamLogo  || "")
     : (_cfg.rightTeamLogo || "");
 
-  set("mvp-name",      mvp.name || "");
+  set("mvp-name",      _cfg.hidePlayerTag ? (mvp.name || "") : ((mvp.name && mvp.tag) ? `${mvp.name}#${mvp.tag}` : (mvp.name || "")));
   set("mvp-team-name", teamName);
   setSrc("mvp-team-logo", teamLogo);
 

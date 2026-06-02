@@ -202,6 +202,10 @@ async function loadOverlayConfig() {
       if (el && cfg[key] != null) el.value = cfg[key];
     });
 
+    /* checkboxes */
+    var hideTagEl = document.getElementById("cfg-hidePlayerTag");
+    if (hideTagEl) hideTagEl.checked = !!cfg.hidePlayerTag;
+
     /* color pickers */
     ["primaryColor", "cellColor", "cell2Color", "overlayBgColor", "headerTextColor", "bodyTextColor", "headerBgColor"].forEach(function(key) {
       var el = document.getElementById("cfg-" + key);
@@ -282,6 +286,10 @@ async function saveOverlayConfig() {
     var el = document.getElementById("cfg-" + key);
     if (el) body[key] = el.value;
   });
+
+  /* checkboxes */
+  var hideTagEl = document.getElementById("cfg-hidePlayerTag");
+  if (hideTagEl) body.hidePlayerTag = hideTagEl.checked;
 
   /* colors */
   ["primaryColor", "cellColor", "cell2Color", "overlayBgColor", "headerTextColor", "bodyTextColor", "headerBgColor"].forEach(function(key) {

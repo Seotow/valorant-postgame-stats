@@ -166,14 +166,14 @@ html, body {
 .match-card.selected { border-left-color: var(--orange) !important; }
 .match-card.selected .match-outcome { color: var(--orange); }
 
-.preview-btn {
+.cta-btn {
   background: var(--orange); border: none; color: #fff;
   padding: 7px 16px; font-family: inherit;
   font-size: 12px; font-weight: 700; letter-spacing: 0.08em;
   text-transform: uppercase; cursor: pointer; text-decoration: none;
   display: inline-block; white-space: nowrap;
 }
-.preview-btn:hover { opacity: 0.85; }
+.cta-btn:hover { opacity: 0.85; }
 
 .match-arrow { color: var(--muted); font-size: 16px; font-weight: 700; }
 
@@ -267,6 +267,11 @@ html, body {
 .config-row select:focus { border-color: var(--orange); }
 .config-row select option { background: var(--dark); }
 
+.config-row input[type="checkbox"] {
+  width: 18px; height: 18px; 
+  accent-color: var(--orange);
+  cursor: pointer;
+}
 /* color rows */
 .color-row {
   grid-template-columns: 160px auto 52px 1fr 48px;

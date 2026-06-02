@@ -154,6 +154,8 @@ body {
 
 /* ── Stats panel (right) ───────────────────────────────────────────────────── */
 .stats-panel {
+  max-width: 1092px;
+  overflow: hidden;
   flex: 1;
   background: rgba(var(--cell-rgb), var(--cell-a));
   padding: 36px 48px 32px 40px;

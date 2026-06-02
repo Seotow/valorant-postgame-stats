@@ -154,7 +154,8 @@ function buildPostgameData(match, myPuuid) {
   const agentName  = (p) => p?.agent?.name ?? "?";
   const portrait   = (p) => p?.agent?.id ? `https://media.valorant-api.com/agents/${p.agent.id}/fullportrait.png`  : "";
   const agentIcon  = (p) => p?.agent?.id ? `https://media.valorant-api.com/agents/${p.agent.id}/displayicon.png`   : "";
-  const playerName = (p) => (p ? `${p.name}#${p.tag}` : "");
+  const hideTag    = _overlayConfig.hidePlayerTag;
+  const playerName = (p) => (p ? (hideTag ? p.name : `${p.name}#${p.tag}`) : "");
 
   const mapName   = (match.metadata?.map?.name   ?? "MAP").toUpperCase();
   const queueName = (match.metadata?.queue?.name ?? match.metadata?.queue?.id ?? "").toUpperCase();
